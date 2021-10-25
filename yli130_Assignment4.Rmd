@@ -1,0 +1,266 @@
+---
+title: "yli130_Assignment4"
+author: "Yanxi Li"
+date: "10/23/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Question 1
+
+In this problem, the total Production Capacity is 220, while the Monthly Demand is only 210. Since Production Capacity is larger than Monthly Demand, there are 2 ways to solve this problem. One is creating the dummy Warehouse for Warehouse 4; Making Production Capacity is <= in the formulation is the other method. I will list this 2 ways separately.
+
+```
+I use 3 ways to solve this problem since I found import lp file is not always the good way 
+to show results.
+```
+
+## Method 1
+
+This way is to create dummy variable for Warehouse 4. I will put the formulation as follows.
+
+```
+/* objective function */
+Min: 622 x11 + 614 x12 + 630 x13 + 641 x21 + 645 x22 + 649 x23;
+
+/* Constraints */
+
+/* Monthly Demand */
+x11 + x21 = 80;
+x12 + x22 = 60;
+x13 + x23 = 70;
+x14 + x24 = 10;
+
+/* Production Capacity  */
+x11 + x12 + x13 + x14 = 100;
+x21 + X22 + X23 + x24 = 120;
+```
+
+```{r}
+# import the library
+library(lpSolveAPI)
+
+# set Working Directory
+setwd("C:/Users/yanxi/OneDrive - Kent State University/Desktop/Quantitative Management Modeling/Assignment/")
+
+# read the lp file
+Formulation_Q1_M1 <- read.lp('Assign 4-Q1.lp')
+
+# solve the lp model 
+solve(Formulation_Q1_M1)
+
+# get the objective function value
+get.objective(Formulation_Q1_M1)
+
+# get the decision variables values
+get.variables(Formulation_Q1_M1)
+```
+
+## Method 2
+
+```
+/* objective function */
+Min: 622 x11 + 614 x12 + 630 x13 + 641 x21 + 645 x22 + 649 x23;
+
+/* Constraints */
+
+/* Monthly Demand */
+x11 + x21 = 80;
+x12 + x22 = 60;
+x13 + x23 = 70;
+
+/* Production Capacity  */
+x11 + x12 + x13  <= 100;
+x21 + X22 + X23  <= 120;
+```
+
+```{r}
+# read lp file
+Formulation_Q1_M2 <- read.lp('Assign 4-Q1-Method-2.lp')
+
+# solve the lp model 
+solve(Formulation_Q1_M2)
+
+# get the objective function value
+get.objective(Formulation_Q1_M2)
+
+# get the decision variables values
+get.variables(Formulation_Q1_M2)
+```
+
+\newpage
+## Method 3
+
+```{r}
+# Create an LP model using make.lp, there are 6 decision variables.
+lprec1 <- make.lp(0, 6)
+
+# set the objective function, which is default to be minimized.
+set.objfn(lprec1, c(622, 614, 630, 641, 645, 649))
+
+# add constraints
+add.constraint(lprec1, c(1, 0, 0, 1, 0, 0), "=", 80)
+add.constraint(lprec1, c(0, 1, 0, 0, 1, 0), "=", 60)
+add.constraint(lprec1, c(0, 0, 1, 0, 0, 1), "=", 70)
+add.constraint(lprec1, c(1, 1, 1, 0, 0, 0), "<=", 100)
+add.constraint(lprec1, c(0, 0, 0, 1, 1, 1), "<=", 120)
+
+# show constraints & decision variables
+lprec1
+
+# solve the lp model
+solve(lprec1)
+
+# get the objective function value
+get.objective(lprec1)
+
+# get the decision variables values
+get.variables(lprec1)
+```
+For Question1, decision variables are 0, 60, 40, 80, 0, 30. Objective function value is 132790.
+
+\newpage
+# Question 1 Results
+
+```{r}
+# create 4 column names to show results
+Plant_Type <- c("Plant A", "Plant B")
+Warehouse1 <- c(0, 80)
+Warehouse2 <- c(60, 0)
+Warehouse3 <- c(40, 30)
+
+# data frame the 3 columns
+Question_1_Results <- data.frame(Plant_Type, Warehouse1, Warehouse2, Warehouse3)
+
+# Show Question 1 Results in data frame
+Question_1_Results
+```
+# Question 2
+
+```
+For this question, there are 24 variables, I cannot import the lp file successfully, 
+                                                          just show the formualtion as follows.
+
+
+/* objective function */
+Min: 1.52 x14 + 1.6 x15 + 1.4 x16 + 1.7 x24 + 1.63 x25 + 1.55 x26 + 1.45 x34 + 1.57 x35 + 1.3 x36 +
+5.15 x47 + 5.69 x48 + 6.13 x49 + 5.63 x410 + 5.8 x411 + 5.12 x57 + 5.47 x58 + 6.05 x59 + 6.12 x510 +
+5.71 x511 + 5.32 x67 + 6.16 x68 + 6.25 x69 + 6.17 x610 + 5.87 x611;                                                               
+
+/* Constraints */
+
+/* Well Constraints */
+x14 + x15 + x16 <= 93;
+x24 + x25 + x26 <= 88;
+x34 + x35 + x36 <= 95;
+
+/* Intermediete Pump Notes Constraints */
+x14 + x24 + x34 = x47 + x48 + x49 + x410 + x411;
+x15 + x25 + x35 = x57 + x58 + x59 + x510 + x511;
+x16 + x26 + x36 = x67 + x68 + x69 + x610 + x611;
+
+/* Refineries Constraints  */
+x47 + x57 + x67 = 30;
+x48 + x58 + x68 = 57;
+x49 + x59 + x69 = 48;
+x410 + x510 + x610 = 91;
+x411 + x511 + x611 = 48;
+```
+
+```{r}
+# Create LP model objects
+lprec2 <- make.lp(11,24)
+  
+# set objective function
+
+set.objfn(lprec2, c(1.52, 1.6, 1.4, 1.7, 1.63, 1.55, 1.45, 1.57, 1.3, 5.15, 5.69, 6.13, 
+                    5.63, 5.8, 5.12, 5.47, 6.05, 6.12, 5.71, 5.32, 6.16, 6.25, 6.17, 5.87))  
+  
+# add constraints
+
+# Well constraints
+set.row(lprec2, 1, c(1,1,1), indices = c(1,2,3))
+set.row(lprec2, 2, c(1,1,1), indices = c(4,5,6))
+set.row(lprec2, 3, c(1,1,1), indices = c(7,8,9))
+
+# Pump constraints
+set.row(lprec2, 4, c(1,1,1,-1,-1,-1,-1,-1), indices = c(1,4,7,10,11,12,13,14))
+set.row(lprec2, 5, c(1,1,1,-1,-1,-1,-1,-1), indices = c(2,5,8,15,16,17,18,19))
+set.row(lprec2, 6, c(1,1,1,-1,-1,-1,-1,-1), indices = c(3,6,9,20,21,22,23,24)) 
+
+# Refineries constraint
+set.row(lprec2, 7, c(1,1,1), indices = c(10,15,20))
+set.row(lprec2, 8, c(1,1,1), indices = c(11,16,21))
+set.row(lprec2, 9, c(1,1,1), indices = c(12,17,22))
+set.row(lprec2, 10, c(1,1,1), indices = c(13,18,23))
+set.row(lprec2, 11, c(1,1,1), indices = c(14,19,24))
+
+# set right hand side of constraint
+rhs <- c(93, 88, 95, 0, 0, 0, 30, 57, 48, 91, 48)
+set.rhs(lprec2, rhs)
+
+# set constraint type
+set.constr.type(lprec2, c("<=", "<=", "<=", "=", "=", "=", "=", "=", "=", "=", "="))
+
+# show numbers of decision variables & constraints
+lprec2
+# solve the lp model
+solve(lprec2)
+
+# get the objective function value
+get.objective(lprec2)
+
+# get 24 decision variables values
+get.variables(lprec2)
+```
+
+For Question 2, decision variables values:
+                x14=93, x15=0, x16=0, x24=0, x25=86, x26=0, x34=28, x35=0, x36=67, 
+                x47=30, x48=0, x49=0, x410=91, x411=0, 
+                x57=0, x58=57, x59=29, x510=0, x511=0,
+                x67=0, x68=0, x69=19, x610=0, x611=48.
+                
+Objective function value = 1963.82
+                
+                
+# Quesion 2 Results
+
+First is the Well, Pump table.
+```{r}
+
+# create 3 column names to show results
+Well_Type <- c("Well 1", "Well 2", "Well 3")
+Pump_A <- c(93, 0, 0)
+Pump_B <- c(0, 86, 0)
+Pump_C <- c(28, 0, 67)
+
+# create data frame
+Question_2_1table <- data.frame(Well_Type, Pump_A, Pump_B, Pump_C)
+
+# show the first table
+Question_2_1table
+```
+
+Second is the Pump, Refineries table.
+```{r}
+
+# create 6 columns to show results
+Pump_Type <- c("Pump A", "Pump B", "Pump C")
+R1 <- c(30, 0, 0)
+R2 <- c(0, 57, 0)
+R3 <- c(0, 29, 19)
+R4 <- c(91, 0, 0)
+R5 <- c(0, 0, 48)
+
+# create data frame
+Question_2_2table <- data.frame(Pump_Type, R1, R2, R3, R4, R5)
+
+# show the second table
+Question_2_2table
+```
+
+
